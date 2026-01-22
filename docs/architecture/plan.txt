@@ -1,0 +1,462 @@
+CrownDesk V2 – Comprehensive Platform Blueprint
+1. Vision & Positioning
+CrownDesk V2 is an AI-powered dental operations platform that sits on top of existing Practice Management Systems (PMS) (starting with Open Dental) and acts as a conversational, automation, and intelligence layer.
+•	PMS (e.g., Open Dental) = System of Record
+•	CrownDesk = Automation, AI, workflow orchestration, and insights
+CrownDesk does not replace the PMS. It augments it safely and compliantly.
+________________________________________
+2. Core Design Principles (Non Negotiable)
+1.	Read mostly from PMS, write back only via approval
+2.	AI assists, humans approve
+3.	Vendor agnostic AI architecture
+4.	Multi tenant by default (clinic = tenant)
+5.	HIPAA ready from day one
+6.	Event driven architecture
+7.	Payments are a convenience, not the core value
+________________________________________
+3. High Level Architecture
+Layered Model
+•	Frontend / UX – Next.js + Vercel
+•	Authentication – Clerk (identity only)
+•	Core Platform Backend – AWS
+•	AI & Automation Layer – Pluggable LLMs, OCR, Voice
+•	Integrations – Open Dental (PMS), Stedi (EDI), Stripe (billing)
+________________________________________
+4. Frontend & UI Strategy
+Stack
+•	Next.js (App Router)
+•	Tailwind CSS
+•	shadcn/ui (Radix based, owned components)
+•	Vercel hosting (frontend only)
+UI Philosophy
+•	Calm, clinical, and confident
+•	Data dense but readable
+•	AI outputs are explainable, never magical
+Layout
+•	App shell with sidebar + top bar
+•	Primary sections:
+o	Dashboard
+o	Patients
+o	Appointments
+o	Insurance
+o	Billing
+o	AI Insights
+o	Tasks & Approvals
+o	Analytics
+o	Settings
+Key UI Patterns
+•	Tables with side drawers for details
+•	Approval panels with before/after diffs
+•	AI insight cards with confidence + evidence
+•	Call monitoring UI for AI receptionist
+________________________________________
+5. Authentication & Authorization
+Identity (Clerk)
+•	Users
+•	Orgs = Clinics
+•	Roles: Admin, Front Desk, Billing, Manager
+Authorization (CrownDesk Backend)
+•	Role based access control
+•	Feature flags per subscription plan
+•	Tenant isolation enforced server side
+Rule: Clerk never stores PHI and never decides data access.
+________________________________________
+6. Core Backend Platform (AWS)
+Services
+•	API Gateway
+•	AWS Lambda / App Runner
+•	Step Functions (workflows)
+•	EventBridge (events)
+•	RDS Postgres (canonical DB)
+•	S3 (documents & audio)
+•	Redis (cache & short term state)
+•	CloudWatch + audit logging
+________________________________________
+7. Database Strategy
+Primary Database
+Postgres is the system of record.
+Stores:
+•	Tenants
+•	Users (mapped to Clerk IDs)
+•	Patients (canonical mirror)
+•	Appointments
+•	Insurance policies
+•	Eligibility requests/responses
+•	Billing artifacts
+•	Approvals
+•	Audit logs
+•	Usage ledger (Stripe metering)
+Documents
+•	Stored in S3 (PDFs, images, audio)
+•	Postgres stores metadata + secure pointers
+AI Context
+•	pgvector (initial)
+•	Optional external vector DB later
+________________________________________
+8. PMS Integration (Open Dental First)
+Canonical Model + Adapter Pattern
+•	Canonical entities inside CrownDesk
+•	PMS specific adapters
+Core Services
+1.	pms adapter service (OpenDentalAdapter)
+2.	sync service
+3.	mapping tables (pms_id ↔ crowndesk_id)
+Sync Model
+•	Incremental polling (1–5 min)
+•	Watermarks
+•	Idempotent upserts
+•	PMS always wins conflicts
+________________________________________
+9. Approval System
+Required for:
+•	Appointment changes
+•	Patient data updates
+•	Insurance/billing writebacks
+•	Coding suggestions
+•	Claim drafts
+Approval Record Includes
+•	Before/after snapshot
+•	AI rationale + evidence
+•	Approver identity
+•	Timestamp
+No silent writes.
+________________________________________
+10. Insurance & Billing
+Insurance & Claims
+•	Stedi as EDI & clearinghouse layer
+o	270/271 eligibility
+o	276/277 claim status
+o	837 claims (v2)
+o	835 ERAs (v2)
+CrownDesk Handles
+•	Workflows
+•	Alerts
+•	Dashboards
+•	AI explanations
+•	Approvals
+________________________________________
+11. Payments Strategy
+Clinics Paying CrownDesk (SaaS)
+•	Stripe Subscriptions
+•	Clinics do NOT need Stripe accounts
+Patients Paying Clinics (Optional)
+•	Stripe Connect (Express)
+•	$0 platform fee initially
+•	Opt in per clinic
+•	Embedded onboarding
+Payments increase retention, not core revenue.
+________________________________________
+12. AI Architecture
+AI Is a Pipeline, Not a Single Model
+AI Orchestrator Service
+•	Routes tasks to LLMs, OCR, RAG, rules
+•	Injects context
+•	Enforces guardrails
+•	Logs everything
+________________________________________
+13. AI Receptionist (Front Door)
+Role
+•	Conversational intake & triage layer
+•	Initiates workflows
+•	Escalates when needed
+Capabilities
+•	Appointment booking/rescheduling
+•	Patient intake
+•	Insurance & billing questions
+•	Post treatment follow ups
+•	Live call monitoring
+•	Human handoff
+Guardrails
+•	No diagnosis
+•	No coverage guarantees
+•	Identity verification required
+•	All actions logged
+________________________________________
+14. Clinical Notes → Coding & Billing Assistant
+Workflow
+1.	Treatment completed in PMS
+2.	Sync pulls notes & procedures
+3.	AI extracts structured facts
+4.	AI proposes CDT codes + docs
+5.	Rules validate
+6.	Human approves
+7.	Writeback or claim draft created
+8.	Full audit trail
+AI Never Submits Claims Autonomously
+________________________________________
+15. Event Driven Backbone
+Key events:
+•	patient.updated
+•	appointment.completed
+•	insurance.eligibility.failed
+•	coding.task.created
+•	approval.granted
+•	claim.ready
+•	call.completed
+________________________________________
+16. Security & Compliance
+•	Encryption at rest & transit
+•	Tenant isolation
+•	Immutable audit logs
+•	Data retention policies
+•	BAA ready services
+AI Guardrails
+•	Evidence backed outputs
+•	Confidence scoring
+•	Human sign off
+________________________________________
+17. Pricing & Plans (Example)
+•	Per location SaaS subscription
+•	Usage based AI charges
+•	Premium add ons
+o	After hours AI receptionist
+o	Insurance automation
+o	Coding assistant
+o	Multi location analytics
+________________________________________
+18. Execution Roadmap
+Phase 1 (0–8 weeks)
+•	Core platform
+•	Open Dental read only sync
+•	Dashboard on real data
+•	Stripe subscriptions
+•	Clerk auth
+•	Insurance eligibility
+Phase 2 (8–16 weeks)
+•	Approval system
+•	AI summaries & alerts
+•	Coding assistant (limited scope)
+•	Safe writebacks
+Phase 3 (16–24 weeks)
+•	Claims & ERAs
+•	Stripe Connect (optional)
+•	Advanced analytics
+•	Multi PMS readiness
+________________________________________
+19. Final Summary
+CrownDesk V2 is a dentally native AI operations OS:
+•	Safe by design
+•	AI first but human approved
+•	PMS agnostic
+•	Scales from one clinic to enterprise
+This blueprint is designed to avoid rewrites, enable compliance, and support long term growth.
+________________________________________
+20. Database Schemas (Core Tables & Indexes)
+20.1 Tenancy & Users
+tenants
+•	id (uuid, pk)
+•	name
+•	status
+•	stripe_customer_id
+•	subscription_plan
+•	created_at
+Indexes:
+•	unique(id)
+•	index(subscription_plan)
+users
+•	id (uuid, pk)
+•	clerk_user_id
+•	tenant_id (fk)
+•	role (admin, frontdesk, billing, manager)
+•	created_at
+Indexes:
+•	unique(clerk_user_id)
+•	index(tenant_id)
+________________________________________
+20.2 Patients & Appointments
+patients
+•	id (uuid, pk)
+•	tenant_id
+•	pms_source
+•	pms_patient_id
+•	first_name
+•	last_name
+•	dob
+•	phone
+•	email
+•	updated_at
+Indexes:
+•	index(tenant_id)
+•	unique(pms_source, pms_patient_id)
+appointments
+•	id (uuid, pk)
+•	tenant_id
+•	patient_id
+•	pms_appointment_id
+•	provider
+•	operatory
+•	start_time
+•	end_time
+•	status
+Indexes:
+•	index(tenant_id, start_time)
+•	index(patient_id)
+________________________________________
+20.3 Insurance & Billing
+insurance_policies
+•	id
+•	patient_id
+•	payer_name
+•	payer_id
+•	plan_name
+•	member_id
+•	group_number
+Indexes:
+•	index(patient_id)
+eligibility_requests
+•	id
+•	patient_id
+•	requested_at
+•	status
+•	stedi_request_id
+Indexes:
+•	index(patient_id)
+•	index(status)
+eligibility_responses
+•	id
+•	eligibility_request_id
+•	raw_payload (jsonb)
+•	normalized_summary (jsonb)
+•	received_at
+________________________________________
+20.4 Approvals & Audit
+approvals
+•	id
+•	tenant_id
+•	entity_type
+•	entity_id
+•	before_state (jsonb)
+•	after_state (jsonb)
+•	ai_rationale
+•	status (pending, approved, rejected)
+•	approved_by
+•	approved_at
+Indexes:
+•	index(tenant_id)
+•	index(status)
+audit_logs
+•	id
+•	tenant_id
+•	actor_type (user, ai, system)
+•	actor_id
+•	action
+•	entity_type
+•	entity_id
+•	timestamp
+Indexes:
+•	index(tenant_id, timestamp)
+________________________________________
+20.5 Documents & AI Context
+documents
+•	id
+•	tenant_id
+•	patient_id
+•	type
+•	storage_key
+•	content_hash
+•	created_at
+Indexes:
+•	index(tenant_id)
+•	index(patient_id)
+rag_chunks
+•	id
+•	document_id
+•	embedding (vector)
+•	metadata (jsonb)
+________________________________________
+21. API Contracts
+21.1 PMS Sync APIs
+GET /sync/patients?since=
+•	Returns updated patients from PMS
+GET /sync/appointments?since=
+•	Returns updated appointments
+POST /sync/writeback
+•	Body: proposed change
+•	Creates approval record
+________________________________________
+21.2 Approval APIs
+GET /approvals
+•	Filters: status, entity_type
+POST /approvals/{id}/approve
+POST /approvals/{id}/reject
+•	Requires rejection reason
+________________________________________
+21.3 AI Orchestrator APIs
+POST /ai/intent
+•	Input: transcript / text
+•	Output: intent + confidence
+POST /ai/summary
+•	Input: structured data + docs
+•	Output: explanation + evidence
+POST /ai/coding
+•	Input: clinical note + procedures
+•	Output: code suggestions + docs
+________________________________________
+22. UI Wireframes (Sidebar-Mapped)
+Dashboard
+•	KPI cards
+•	Alerts panel
+•	Today’s schedule summary
+Patients
+•	Patient table
+•	Side drawer with demographics, insurance, history
+Appointments
+•	Calendar view
+•	Reschedule drawer
+Insurance
+•	Eligibility status table
+•	Alert badges
+•	AI explanation panel
+Billing
+•	Balances overview
+•	Claim drafts (v2)
+AI Insights
+•	Insight cards
+•	Confidence meters
+•	Evidence links
+Tasks & Approvals
+•	Approval queue
+•	Diff view
+Settings
+•	Clinic profile
+•	Integrations
+•	Billing plan
+________________________________________
+23. Technical PRD (Acceptance Criteria)
+Feature: AI Receptionist
+Acceptance Criteria:
+•	Can answer inbound calls
+•	Correctly classifies intent
+•	Logs call transcript
+•	Creates tasks or approvals
+•	Escalates to human when confidence < threshold
+________________________________________
+Feature: Insurance Verification
+Acceptance Criteria:
+•	Triggers eligibility check via Stedi
+•	Displays status within UI
+•	Generates AI summary
+•	Raises alert on failure
+________________________________________
+Feature: Coding Assistant
+Acceptance Criteria:
+•	Parses treatment notes
+•	Suggests CDT codes with evidence
+•	Requires human approval
+•	Logs audit trail
+________________________________________
+Feature: PMS Writeback
+Acceptance Criteria:
+•	No write occurs without approval
+•	PMS reflects change after execution
+•	Sync confirms update
+•	Audit log recorded
+________________________________________
+Feature: SaaS Billing
+Acceptance Criteria:
+•	Clinics can subscribe via Stripe
+•	Usage is metered
+•	Access revoked on non-payment
+________________________________________
+End of CrownDesk V2 Blueprint
+
