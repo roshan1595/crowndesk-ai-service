@@ -126,6 +126,8 @@ POST /api/insights/{id}   # AI insights
 - **Frontend:** [crowndesk-frontend](https://github.com/roshan1595/crowndesk-frontend)
 - **Backend:** [crowndesk-backend](https://github.com/roshan1595/crowndesk-backend)
 
+- **Repo linked to fly.io**
+
 ---
 
 **Built with ❤️ for dental practices**
