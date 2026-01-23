@@ -16,6 +16,17 @@ primary_region = 'iad'
   min_machines_running = 0
   processes = ['app']
 
+  # Health check configuration
+  [[http_service.checks]]
+    grace_period = "30s"          # Wait 30s after start before checking
+    interval = "15s"               # Check every 15s
+    method = "GET"
+    timeout = "5s"                 # 5s timeout per check
+    path = "/health"               # Health endpoint
+    
+    [http_service.checks.headers]
+      Content-Type = "application/json"
+
 [[vm]]
   memory = '1gb'
   cpu_kind = 'shared'
