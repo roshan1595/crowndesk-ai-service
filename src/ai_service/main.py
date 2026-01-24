@@ -10,7 +10,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from ai_service.config import get_settings
-from ai_service.routers import coding, health, intent, rag, retell, voice_agent
+from ai_service.routers import coding, feedback, health, intent, rag, retell, voice_agent
 
 
 @asynccontextmanager
@@ -59,6 +59,7 @@ def create_app() -> FastAPI:
     app.include_router(intent.router, prefix="/intent", tags=["intent"])
     app.include_router(retell.router, prefix="/retell", tags=["retell"])
     app.include_router(voice_agent.router, tags=["voice-agent"])
+    app.include_router(feedback.router, prefix="/feedback", tags=["feedback"])
 
     return app
 
